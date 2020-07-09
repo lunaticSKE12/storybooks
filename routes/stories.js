@@ -44,20 +44,25 @@ router.get('/', ensureAuth, async (req, res) => {
 // @desc  Show edit page
 // @route Get /stories/edit/:id
 router.get('/edit/:id', ensureAuth, async (req, res) => {
-  const story = await Story.findOne({
-    _id: req.params.id,
-  }).lean();
+  try {
+    const story = await Story.findOne({
+      _id: req.params.id,
+    }).lean();
 
-  if (!story) {
-    return res.render('error/404');
-  }
+    if (!story) {
+      return res.render('error/404');
+    }
 
-  if (story.user != req.user.id) {
-    res.redirect('/stories');
-  } else {
-    res.render('stories/edit', {
-      story,
-    });
+    if (story.user != req.user.id) {
+      res.redirect('/stories');
+    } else {
+      res.render('stories/edit', {
+        story,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.render('error/500');
   }
 });
 
@@ -83,6 +88,18 @@ router.put('/:id', ensureAuth, async (req, res) => {
     }
   } catch (err) {
     console.error(err);
+    return res.render('error/500');
+  }
+});
+
+// @desc  Delete storiy
+// @route DELETE /stories/:id
+router.delete('/:id', ensureAuth, async (req, res) => {
+  try {
+    await Story.remove({ _id: req.params.id });
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error(error);
     return res.render('error/500');
   }
 });
